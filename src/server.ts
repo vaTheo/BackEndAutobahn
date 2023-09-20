@@ -1,27 +1,15 @@
-// import authRoutes from './routes/auth';
+// import { error, json, Router } from 'itty-router'
 
-// addEventListener('fetch', (event: any) => {
-//   event.respondWith(authRoutes.handle(event.request))
-// })
+// const router = Router()
 
-import { IttyRouter } from './itty-router';
-import { Request } from 'node-fetch';
-import http from 'http';
+// router.post()
+//   .get('/', () => 'Success!')
+//   .all('*', () => error(404))
 
-const router = new IttyRouter();
-
-router.get('/hello', (req: Request) => new Response('Hello, World!'));
-
-const server = http.createServer((req, res) => {
-  const fetchReq = new Request(req.url!, { method: req.method });
-  const response = router.handle(fetchReq);
-
-  res.writeHead(response.status, { ...response.headers });
-  response.text().then(body => {
-    res.end(body);
-  });
-});
-
-server.listen(3000, () => {
-  console.log('Server is running on http://localhost:3000');
-});
+// export default {
+//   port: 3001,
+//   fetch: (request:any) => router
+//                         .handle(request)
+//                         .then(json)
+//                         .catch(error)
+// }
