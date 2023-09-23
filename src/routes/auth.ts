@@ -1,11 +1,11 @@
 import { Router,error, json, } from 'itty-router'; //Import itty
-
+import { getUserPoints } from '../Functions/mongooseRelated'//Import function from mongooseRelated.ts
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 //MongoDB try import model
 const mongoose = require('mongoose');
-import User, { IUser } from '../models/user';
+import User, { IUser, IUserPoints } from '../models/user';
 
 mongoose.connect('mongodb+srv://tetroxis:BVHaKTo5lbhg2O77@cluster0.svei9f4.mongodb.net/',
  { useNewUrlParser: true, useUnifiedTopology: true })
@@ -14,8 +14,8 @@ mongoose.connect('mongodb+srv://tetroxis:BVHaKTo5lbhg2O77@cluster0.svei9f4.mongo
 
 const router = Router();
 
-router.post('/register', async (request) => { //Register a user
-    const { username, email, password } = await request.json();
+router.post('/user/register', async (request) => { //Register a user
+    const { username, email, password ,userPoints} = await request.json();
     //Check if the user and email is allready existing
     let existingUser: IUser | null = null
     if (email && email.trim() !== '') {
@@ -43,13 +43,13 @@ router.post('/register', async (request) => { //Register a user
      }
 
     // const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ username, email, password } as IUser);
+    const newUser = new User({ username, email, password ,userPoints} as IUser);
 
     await newUser.save();
     return new Response(JSON.stringify({ msg: 'User registered successfully' }), { status: 200 });
 });
 
-router.post('/login', async (request) => {
+router.post('/user/login', async (request) => {
     const { username, email, password } = await request.json();
 
     const user: IUser | null = await User.findOne({ username });
@@ -67,16 +67,23 @@ router.post('/login', async (request) => {
     return new Response(JSON.stringify({ token, user }), { status: 200 });
 });
 
-router.post('/user/:userId/updateScore', async (request)=>{
-    const userID = request.params;
+router.post('/user/:userName/updateScore', async (request)=>{
+    const {userName} = request.params;
+    //  console.log(await getUserPoints(userName))
     const {addNbPeage,AddNbCardFail,AddNbCardWin,AddNbgameWin,AddNbGameAbandoned} = await request.json();
-    User.updateOne
+
+     const userPoints = await getUserPoints(userName)
+     console.log(userPoints)
+
+   
+    
+    
 
     
 });
 
 export default {
-    port: 3001,
+    port: 3000,
     fetch: (request:any) => router
                           .handle(request)
                           .then(json)
