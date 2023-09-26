@@ -1,31 +1,53 @@
 //MongoDB try import model
 const mongoose = require("mongoose");
-import User, { IUser, IUserPoints } from "../models/user";
+import  { IUser, IUserPoints } from "../models/user";
+import User from "../models/user";
 
-//Function to searche for actual points in MONGODB, with a username as imput
-export async function getUserPoints(userName: String) /*: Promise <IUserPoints | null>*/ {
-  const userpoints:IUser[] = await User.find({ username: userName })
-    .select("userPoints")//Select the object we want to querry
-    .exec();//execute the querry 
-  if (!userpoints) throw new Error("User not found");
-  //console.log(user)
-  else {
-    return userpoints;
+
+
+export async function getUserPoints(username: string): Promise<IUserPoints | null> {
+  // Connect to MongoDB if not already connected
+
+  // Find the user by username
+  const user: IUser | null = await User.findOne({ username });
+
+  // If user is found, return the userPoints, otherwise return null
+  return user ? user.userPoints : null;
+}
+
+export async function incrementFieldUserPoints(username: string, fieldName: string, incrementValue: number): Promise<void> {
+  const updatePath = `userPoints.${fieldName}`;
+
+  await User.updateOne(
+    { username: username }, 
+    { $inc: { [updatePath]: incrementValue } }
+  ).catch(err=>console.log(err));
+}
+
+type ResetValues = {
+  [key in keyof IUserPoints]: number;
+};
+
+export async function resetUserAllPoints(username: string): Promise<void> {
+  const resetValues: Partial<IUserPoints> = {};
+
+  for (const key in resetValues) {
+      if (typeof resetValues[key as keyof IUserPoints] === "number") {
+        resetValues[key as keyof IUserPoints] = 0;
+        console.log(resetValues)
+      }
   }
-  return null;
-  //result :
-  /*[
-        {
-          userPoints: {
-            nbPeage: 0,
-            nbCardFail: 0,
-            nbCardWin: 0,
-            nbgameWin: 0,
-            nbGameAbandoned: 0,
-            _id: new ObjectId("650d5b668ab5781a47d50e5b")
-          },
-          _id: new ObjectId("650d56a7378a4a0c76c2f9d4")
-        }
-      ]
-      */
+
+  
+  console.log(resetValues as IUserPoints)
+
+  // Construct the update object with the 'userPoints' prefix
+  const updateObject: { [key: string]: number } = {};
+  for (const key in resetValues) {
+    updateObject[`userPoints.${key}`] = resetValues[key as keyof IUserPoints];
+  }
+  console.log(updateObject)
+
+  // Update the user document in the database
+  await User.updateOne({ username: username }, { $set: updateObject });
 }

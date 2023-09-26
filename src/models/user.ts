@@ -4,14 +4,12 @@ import bcrypt from 'bcryptjs';
 import { any, object } from 'webidl-conversions';
 
 //Typescript interface for the user
-export interface IUserPoints extends Document{
+export interface IUserPoints{
     nbPeage: number;
     nbCardFail: number;
     nbCardWin: number;
     nbgameWin: number;
     nbGameAbandoned: number;
-    _id?: ObjectId;
-    any?:any;
 }
 //User point schemas creation
 const UserPointsSchema: Schema = new mongoose.Schema<IUserPoints>({
@@ -25,7 +23,7 @@ const UserPointsSchema: Schema = new mongoose.Schema<IUserPoints>({
 
 
 
-//Typescript interface for the user
+//Typescript     for the user
 export interface IUser extends Document {
     username: string;
     email: string;
@@ -33,7 +31,6 @@ export interface IUser extends Document {
     test: string;
     userPoints: IUserPoints;
     _id?: ObjectId;
-    any?:any;
 }
 
 //User schema creation, with a nested UserPoints schema
@@ -42,7 +39,7 @@ const UserSchema: Schema = new mongoose.Schema<IUser>({
     email: { type: String, required: false, unique: true, sparse : true},// sparse is used to not have a duplicate items error if the field is empty
     password: { type: String, required: true },
     test:{type: String},
-    userPoints : UserPointsSchema//{type : UserPointsSchema, required:true, default:{nbPeage :0,nbCardFail:0,nbCardWin:0,nbgameWin:0,nbGameAbandoned:0}}
+    userPoints : {type :UserPointsSchema, required: true}//{type : UserPointsSchema, required:true, default:{nbPeage :0,nbCardFail:0,nbCardWin:0,nbgameWin:0,nbGameAbandoned:0}}
     // {
     //     nbPeage: {type: Number, required: true,default:0},
     //     nbCardFail: {type: Number, required: true,default:0},

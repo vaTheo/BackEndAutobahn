@@ -1,5 +1,5 @@
 import { Router,error, json, } from 'itty-router'; //Import itty
-import { getUserPoints } from '../Functions/mongooseRelated'//Import function from mongooseRelated.ts
+import { getUserPoints, incrementFieldUserPoints, resetUserAllPoints} from '../Functions/mongooseRelated'//Import function from mongooseRelated.ts
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
@@ -70,17 +70,34 @@ router.post('/user/login', async (request) => {
 router.post('/user/:userName/updateScore', async (request)=>{
     const {userName} = request.params;
     //  console.log(await getUserPoints(userName))
-    const {addNbPeage,AddNbCardFail,AddNbCardWin,AddNbgameWin,AddNbGameAbandoned} = await request.json();
+    const data = await request.json()
+    for (const key in data) {
+        if (data.hasOwnProperty(key)) {
+          const value:number = data[key as keyof IUserPoints];
+          if (value != 0){
+            await incrementFieldUserPoints(userName,key,value).catch(err=>console.log(err))
+          } 
+        }
+      }
 
-     const userPoints = await getUserPoints(userName)
-     console.log(userPoints)
-
-   
-    
-    
-
-    
+    // const {addNbPeage,AddNbCardFail,AddNbCardWin,AddNbgameWin,AddNbGameAbandoned} = await request.json();
+    const userPoints = await getUserPoints(userName)
+    console.log(userPoints)
+    return new Response(JSON.stringify({ msg: 'Score updated with success' }), { status: 200 });
+     
 });
+
+router.post('/user/:userName/resetScore', async(request)=>{
+    const {userName} = request.params;
+    const data = await request.json()
+    await resetUserAllPoints(userName)
+
+    const userPoints = await getUserPoints(userName)
+    console.log(userPoints)
+    return new Response(JSON.stringify({ msg: 'Score deleted with success' }), { status: 200 });
+
+
+})
 
 export default {
     port: 3000,
