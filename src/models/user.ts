@@ -5,11 +5,16 @@ import { any, object } from 'webidl-conversions';
 
 //Typescript interface for the user
 export interface IUserPoints{
-    nbPeage: number;
-    nbCardFail: number;
-    nbCardWin: number;
-    nbgameWin: number;
-    nbGameAbandoned: number;
+    nbPeage: {type : number, default:0}; //Count the number of peage the player goes through
+    nbCardFail: {type : number, default:0};//Count the number of time the player guess the wrong card
+    nbCardWin: {type : number, default:0}; //Count the number of time the player guess the good card
+    nbgameWin: {type : number, default:0}; //Count the number of win games
+    nbGameAbandoned: {type : number, default:0}; //Count the number of games abandoned
+    nbGameStarted: {type : number, default:0}; //Count the number of game started
+    nbGameStardedWithAlchool: {type : number, default:0}; //Count the number of game started with alcool
+    nbRedSelected:{type : number, default:0}; // Count the number selected red card by the player
+    nbBlackSelected:  {type : number, default:0}; // Count the number selected black card by the player
+    nbArriveToLasCard :  {type : number, default:0}; // Count the number of time arrive to the last card
 }
 //User point schemas creation
 const UserPointsSchema: Schema = new mongoose.Schema<IUserPoints>({
@@ -17,19 +22,22 @@ const UserPointsSchema: Schema = new mongoose.Schema<IUserPoints>({
     nbCardFail: {type: Number, required: true, default:0},
     nbCardWin: {type: Number, required: true, default:0},
     nbgameWin: {type: Number, required: true, default:0},
-    nbGameAbandoned: {type: Number, required: true, default:0} ,
-    
+    nbGameAbandoned: {type: Number, required: true, default:0},
+    nbGameStarted: {type: Number, required: true, default:0},
+    nbGameStardedWithAlchool:  {type: Number, required: true, default:0},
+    nbRedSelected: {type: Number, required: true, default:0},
+    nbBlackSelected:  {type: Number, required: true, default:0},
+    nbArriveToLasCard :  {type: Number, required: true, default:0}
+
+    // Faire un tableau entre deux et 8
 })
 
-
-
-//Typescript     for the user
+//Typescript for the user
 export interface IUser extends Document {
-    username: string;
-    email: string;
-    password: string;
-    test: string;
-    userPoints: IUserPoints;
+    username: string; //Username
+    email: string; //email
+    password: string; //Password
+    userPoints: IUserPoints; //Database Userpoit type IUserPoints
     _id?: ObjectId;
 }
 
@@ -38,15 +46,7 @@ const UserSchema: Schema = new mongoose.Schema<IUser>({
     username: { type: String, required: true, unique: true },
     email: { type: String, required: false, unique: true, sparse : true},// sparse is used to not have a duplicate items error if the field is empty
     password: { type: String, required: true },
-    test:{type: String},
     userPoints : {type :UserPointsSchema, required: true}//{type : UserPointsSchema, required:true, default:{nbPeage :0,nbCardFail:0,nbCardWin:0,nbgameWin:0,nbGameAbandoned:0}}
-    // {
-    //     nbPeage: {type: Number, required: true,default:0},
-    //     nbCardFail: {type: Number, required: true,default:0},
-    //     nbCardWin: {type: Number, required: true,default:0},
-    //     nbgameWin: {type: Number, required: true,default:0},
-    //     nbGameAbandoned: {type: Number, required: true,default:0}        
-    // }
 });
 
 

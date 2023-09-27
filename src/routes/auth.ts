@@ -1,5 +1,5 @@
 import { Router,error, json, } from 'itty-router'; //Import itty
-import { getUserPoints, incrementFieldUserPoints, resetUserAllPoints} from '../Functions/mongooseRelated'//Import function from mongooseRelated.ts
+import { getUserPoints, incrementFieldUserPoints, RAZOneIUserPoints} from '../Functions/mongooseRelated'//Import function from mongooseRelated.ts
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
@@ -7,19 +7,26 @@ import jwt from 'jsonwebtoken';
 const mongoose = require('mongoose');
 import User, { IUser, IUserPoints } from '../models/user';
 
-mongoose.connect('mongodb+srv://tetroxis:BVHaKTo5lbhg2O77@cluster0.svei9f4.mongodb.net/',
- { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('Connexion à MongoDB réussie !'))
   .catch(() => console.log('Connexion à MongoDB échouée !'));
 
+
 const router = Router();
 
+
+/*Awaited JSON ={
+{
+   "username": "[username]",
+   "password":"[password]",
+	"userPoints" : {}
+}
+}*/
 router.post('/user/register', async (request) => { //Register a user
     const { username, email, password ,userPoints} = await request.json();
     //Check if the user and email is allready existing
     let existingUser: IUser | null = null
     if (email && email.trim() !== '') {
-        console.log('tu devrais pas etre la ')
         existingUser = (await User.findOne({ email })  )|| await User.findOne({ username }) ;
     }else{
         existingUser = await User.findOne({ username }) ;}
@@ -49,6 +56,12 @@ router.post('/user/register', async (request) => { //Register a user
     return new Response(JSON.stringify({ msg: 'User registered successfully' }), { status: 200 });
 });
 
+/*Awaited JSON ={
+{
+   "username": "[username]",
+   "password":"[password]",
+}
+}*/
 router.post('/user/login', async (request) => {
     const { username, email, password } = await request.json();
 
@@ -61,43 +74,82 @@ router.post('/user/login', async (request) => {
     if (!isMatch) {
         return new Response(JSON.stringify({ msg: 'Invalid password' }), { status: 400 });
     }
+
     const payload = { id: user._id}
     const jwtSecret =`Arguing that you don't care about the right to privacy because you have nothing to hide is no different than saying you don't care about free speech because you have nothing to say.`
     const token: string = jwt.sign(payload,jwtSecret, { algorithm: 'HS512', expiresIn: '12h'  });
     return new Response(JSON.stringify({ token, user }), { status: 200 });
 });
 
+/*Awaited JSON =
+{
+    "nbPeage": 0,
+    "nbCardFail": 1,
+    "nbCardWin": 3,
+	"nbgameWin" : 0,
+	"nbGameAbandoned": 0,
+	"nbGameStarted":0,
+    "nbGameStardedWithAlchool": 0,
+    "nbRedSelected": 0,
+    "nbBlackSelected":0,
+    "nbArriveToLasCard" : 0
+}*/
 router.post('/user/:userName/updateScore', async (request)=>{
     const {userName} = request.params;
-    //  console.log(await getUserPoints(userName))
+
     const data = await request.json()
     for (const key in data) {
         if (data.hasOwnProperty(key)) {
           const value:number = data[key as keyof IUserPoints];
           if (value != 0){
-            await incrementFieldUserPoints(userName,key,value).catch(err=>console.log(err))
+            await incrementFieldUserPoints(userName,key,value)
+            .catch(err=>console.log('post./user/:userName/updateScore : '+err))
           } 
         }
       }
 
     // const {addNbPeage,AddNbCardFail,AddNbCardWin,AddNbgameWin,AddNbGameAbandoned} = await request.json();
-    const userPoints = await getUserPoints(userName)
-    console.log(userPoints)
     return new Response(JSON.stringify({ msg: 'Score updated with success' }), { status: 200 });
      
 });
 
+/*Awaited JSON =
+When calling this post, every object is optional, only the ones send in the JSON will be set to 0
+
+{
+    "nbPeage": 0,
+    "nbCardFail": 0,
+    "nbCardWin": 0,
+	"nbgameWin" : 0,
+	"nbGameAbandoned": 0,
+	"nbGameStarted":0,
+    "nbGameStardedWithAlchool": 0,
+    "nbRedSelected": 0,
+    "nbBlackSelected":0,
+    "nbArriveToLasCard" : 0
+}*/
 router.post('/user/:userName/resetScore', async(request)=>{
     const {userName} = request.params;
     const data = await request.json()
-    await resetUserAllPoints(userName)
-
-    const userPoints = await getUserPoints(userName)
-    console.log(userPoints)
+    console.log(data)
+    for (const key in data) {
+        if (data.hasOwnProperty(key)) {
+          const value:number = data[key as keyof Partial<IUserPoints>];
+            await RAZOneIUserPoints(userName,key)
+            .catch(err=>console.log("post./user/:userName/resetScore : " + err))
+        }
+      }
     return new Response(JSON.stringify({ msg: 'Score deleted with success' }), { status: 200 });
 
 
 })
+
+router.post('/user/:userName/startGame', async(request)=>{
+})
+
+router.post('/user/:userName/endGame', async(request)=>{
+})
+
 
 export default {
     port: 3000,
@@ -106,4 +158,4 @@ export default {
                           .then(json)
                           .catch(error)
   }
-
+// 

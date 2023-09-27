@@ -1,5 +1,6 @@
 //MongoDB try import model
 const mongoose = require("mongoose");
+import { Console } from "console";
 import  { IUser, IUserPoints } from "../models/user";
 import User from "../models/user";
 
@@ -17,16 +18,25 @@ export async function getUserPoints(username: string): Promise<IUserPoints | nul
 
 export async function incrementFieldUserPoints(username: string, fieldName: string, incrementValue: number): Promise<void> {
   const updatePath = `userPoints.${fieldName}`;
-
+  console.log(`userPoints.${fieldName}`)
+  console.log(`userPoints.${incrementValue}`)
+  
   await User.updateOne(
     { username: username }, 
     { $inc: { [updatePath]: incrementValue } }
-  ).catch(err=>console.log(err));
+  ).catch(err=>console.log("Function incrementFieldUserPoints : " + err));
 }
 
-type ResetValues = {
-  [key in keyof IUserPoints]: number;
-};
+export async function RAZOneIUserPoints(username : string, fieldName:string): Promise<void> {
+  const updatePath = `userPoints.${fieldName}`;
+
+  await User.updateOne(
+    { username: username }, 
+    { $set: { [updatePath]: 0 } }
+  ).catch(err=>console.log("Function RAZOneIUserPoints : " + err));
+}
+
+
 
 export async function resetUserAllPoints(username: string): Promise<void> {
   const resetValues: Partial<IUserPoints> = {};
@@ -51,3 +61,4 @@ export async function resetUserAllPoints(username: string): Promise<void> {
   // Update the user document in the database
   await User.updateOne({ username: username }, { $set: updateObject });
 }
+
