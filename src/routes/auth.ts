@@ -1,3 +1,5 @@
+import dotenv from 'dotenv';
+dotenv.config();
 import { Router,error, json, } from 'itty-router'; //Import itty
 import { getUserPoints, incrementFieldUserPoints, RAZOneIUserPoints} from '../Functions/mongooseRelated'//Import function from mongooseRelated.ts
 import bcrypt from 'bcryptjs';
@@ -6,11 +8,11 @@ import jwt from 'jsonwebtoken';
 //MongoDB try import model
 const mongoose = require('mongoose');
 import User, { IUser, IUserPoints } from '../models/user';
-
-mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+ss
+mongoose.connect(process.env.MONGODB_URI,
+ { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('Connexion à MongoDB réussie !'))
   .catch(() => console.log('Connexion à MongoDB échouée !'));
-
 
 const router = Router();
 
