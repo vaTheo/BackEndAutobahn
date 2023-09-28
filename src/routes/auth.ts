@@ -8,7 +8,7 @@ import jwt from 'jsonwebtoken';
 //MongoDB try import model
 const mongoose = require('mongoose');
 import User, { IUser, IUserPoints } from '../models/user';
-ss
+
 mongoose.connect(process.env.MONGODB_URI,
  { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('Connexion à MongoDB réussie !'))
@@ -65,23 +65,30 @@ router.post('/user/register', async (request) => { //Register a user
 }
 }*/
 router.post('/user/login', async (request) => {
-    const { username, email, password } = await request.json();
+    try{
+        const { username, email, password } = await request.json();
 
-    const user: IUser | null = await User.findOne({ username });
-    if (!user) {
-        return new Response(JSON.stringify({ msg: 'User does not exist' }), { status: 400 });
-    }
+        const user: IUser | null = await User.findOne({ username });
+        if (!user) {
+            return new Response(JSON.stringify({ msg: 'User does not exist' }), { status: 400 });
+        }
 
-    const isMatch: boolean = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-        return new Response(JSON.stringify({ msg: 'Invalid password' }), { status: 400 });
-    }
+        const isMatch: boolean = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return new Response(JSON.stringify({ msg: 'Invalid password' }), { status: 400 });
+        }
 
-    const payload = { id: user._id}
-    const jwtSecret =`Arguing that you don't care about the right to privacy because you have nothing to hide is no different than saying you don't care about free speech because you have nothing to say.`
+        const payload = { id: user._id}
+        const jwtSecret =`Arguing that you don't care about the right to privacy because you have nothing to hide is no different than saying you don't care about free speech because you have nothing to say.`
     const token: string = jwt.sign(payload,jwtSecret, { algorithm: 'HS512', expiresIn: '12h'  });
     return new Response(JSON.stringify({ token, user }), { status: 200 });
-});
+}
+    
+catch (error) {
+    console.error('Error generating JWT token:', error);
+    return new Response(JSON.stringify({ msg: 'Internal server error', error: error.message }), { status: 500 });
+}
+    });
 
 /*Awaited JSON =
 {
