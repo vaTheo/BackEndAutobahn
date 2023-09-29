@@ -2,8 +2,9 @@ import dotenv from 'dotenv';
 dotenv.config();
 import { Router,error, json, } from 'itty-router'; //Import itty
 import { getUserPoints, incrementFieldUserPoints, RAZOneIUserPoints} from '../Functions/mongooseRelated'//Import function from mongooseRelated.ts
+import { CreateTokenLogin, VerifyTokenUser} from '../Functions/userAuth'//Import function from userUth.ts
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+
 
 //MongoDB try import model
 const mongoose = require('mongoose');
@@ -78,10 +79,12 @@ router.post('/user/login', async (request) => {
             return new Response(JSON.stringify({ msg: 'Invalid password' }), { status: 400 });
         }
 
-        const payload = { id: user._id}
-        const jwtSecret =`Arguing that you don't care about the right to privacy because you have nothing to hide is no different than saying you don't care about free speech because you have nothing to say.`
-    const token: string = jwt.sign(payload,jwtSecret, { algorithm: 'HS512', expiresIn: '12h'  });
-    return new Response(JSON.stringify({ token, user }), { status: 200 });
+        const payload = {username}
+        const jwtSecret =process.env.JWT_PHRASE
+        CreateTokenLogin(payload,jwtSecret)
+
+    // const token: string = jwt.sign(payload,jwtSecret, { algorithm: 'HS512', expiresIn: '12h'  });
+    // return new Response(JSON.stringify({ token, user }), { status: 200 });
 }
     
 catch (error) {
@@ -102,11 +105,21 @@ catch (error) {
     "nbRedSelected": 0,
     "nbBlackSelected":0,
     "nbArriveToLasCard" : 0
+    },
+    {
+        JWT//Json Web Token
+    }
 }*/
 router.post('/user/:userName/updateScore', async (request)=>{
     const {userName} = request.params;
+    const {data} = await request.json()
 
-    const data = await request.json()
+    //Verify if the user is loged
+    const payload = {userName}
+    if (!VerifyTokenUser(payload,data.token)){
+      return new Response(JSON.stringify({ msg: 'Operation imposible the user is not logged in' }), { status: 400 });
+    }
+    
     for (const key in data) {
         if (data.hasOwnProperty(key)) {
           const value:number = data[key as keyof IUserPoints];
@@ -116,6 +129,8 @@ router.post('/user/:userName/updateScore', async (request)=>{
           } 
         }
       }
+
+    
 
     // const {addNbPeage,AddNbCardFail,AddNbCardWin,AddNbgameWin,AddNbGameAbandoned} = await request.json();
     return new Response(JSON.stringify({ msg: 'Score updated with success' }), { status: 200 });
