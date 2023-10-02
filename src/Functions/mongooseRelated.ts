@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 import { Console } from "console";
 import  { IUser, IUserPoints } from "../models/user";
 import User from "../models/user";
+import jwt from 'jsonwebtoken';
 
 
 
@@ -18,8 +19,6 @@ export async function getUserPoints(username: string): Promise<IUserPoints | nul
 
 export async function incrementFieldUserPoints(username: string, fieldName: string, incrementValue: number): Promise<void> {
   const updatePath = `userPoints.${fieldName}`;
-  console.log(`userPoints.${fieldName}`)
-  console.log(`userPoints.${incrementValue}`)
   
   await User.updateOne(
     { username: username }, 
@@ -34,31 +33,5 @@ export async function RAZOneIUserPoints(username : string, fieldName:string): Pr
     { username: username }, 
     { $set: { [updatePath]: 0 } }
   ).catch(err=>console.log("Function RAZOneIUserPoints : " + err));
-}
-
-
-
-export async function resetUserAllPoints(username: string): Promise<void> {
-  const resetValues: Partial<IUserPoints> = {};
-
-  for (const key in resetValues) {
-      if (typeof resetValues[key as keyof IUserPoints] === "number") {
-        resetValues[key as keyof IUserPoints] = 0;
-        console.log(resetValues)
-      }
-  }
-
-  
-  console.log(resetValues as IUserPoints)
-
-  // Construct the update object with the 'userPoints' prefix
-  const updateObject: { [key: string]: number } = {};
-  for (const key in resetValues) {
-    updateObject[`userPoints.${key}`] = resetValues[key as keyof IUserPoints];
-  }
-  console.log(updateObject)
-
-  // Update the user document in the database
-  await User.updateOne({ username: username }, { $set: updateObject });
 }
 

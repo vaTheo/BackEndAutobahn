@@ -1,22 +1,22 @@
 import dotenv from 'dotenv';
 dotenv.config();
-import { Router,error, json, } from 'itty-router'; //Import itty
 import { getUserPoints, incrementFieldUserPoints, RAZOneIUserPoints} from '../Functions/mongooseRelated'//Import function from mongooseRelated.ts
 import { CreateTokenLogin, VerifyTokenUser} from '../Functions/userAuth'//Import function from userUth.ts
 import bcrypt from 'bcryptjs';
+const express = require('express');
 
 
 //MongoDB try import model
 const mongoose = require('mongoose');
 import User, { IUser, IUserPoints } from '../models/user';
-
 mongoose.connect(process.env.MONGODB_URI,
  { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('Connexion à MongoDB réussie !'))
   .catch(() => console.log('Connexion à MongoDB échouée !'));
 
-const router = Router();
-
+  const app = express();
+  app.use(express.json()); // for parsing application/json
+  
 
 /*Awaited JSON ={
 {
@@ -25,8 +25,8 @@ const router = Router();
 	"userPoints" : {}
 }
 }*/
-router.post('/user/register', async (request) => { //Register a user
-    const { username, email, password ,userPoints} = await request.json();
+app.post('/user/register', async (req:any,res: any) => { //Register a user
+    const { username, email, password ,userPoints} = await req.body;
     //Check if the user and email is allready existing
     let existingUser: IUser | null = null
     if (email && email.trim() !== '') {
@@ -37,26 +37,26 @@ router.post('/user/register', async (request) => { //Register a user
     const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
     //User allready exsite 
     if (existingUser) { 
-            return new Response(JSON.stringify({ msg: 'User already exists' }), { status: 400 });
+        return res.status(400).send('User already exists');
      }
      //Wrong credential entered
      if (!username || !password){
-        return new Response(JSON.stringify({ msg: 'You have to fill all the needed credential fields' }), { status: 400 });   
+        return res.status(400).send('You have to fill all the needed credential fields');   
      }else if(!emailRegex.test(email) && email){   
-        return new Response(JSON.stringify({ msg: 'The mail you entered is not valid' }), { status: 400 });   
+        return res.status(400).send('The mail you entered is not valid');   
      }
      //guigui38v user management
      if (password == "bitebite38" && username != 'guigui38v'){
-        return new Response(JSON.stringify({ msg: 'ERROR, only the user "guigui38v" is allowed to have this password' }), { status: 400 });      
+        return res.status(400).send('ERROR, only the user "guigui38v" is allowed to have this password');      
      }else if  (password != "bitebite38" && username == 'guigui38v' ) {
-        return new Response(JSON.stringify({ msg: 'ERROR, guigui38v, you enter the wrong password for registration' }), { status: 400 });      
+        return res.status(400).send('ERROR, guigui38v, you enter the wrong password for registration');      
      }
 
     // const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({ username, email, password ,userPoints} as IUser);
 
     await newUser.save();
-    return new Response(JSON.stringify({ msg: 'User registered successfully' }), { status: 200 });
+    return res.status(200).send('User registered successfully');
 });
 
 /*Awaited JSON ={
@@ -65,61 +65,69 @@ router.post('/user/register', async (request) => { //Register a user
    "password":"[password]",
 }
 }*/
-router.post('/user/login', async (request) => {
+app.post('/user/login', async (req:any,res: any) => {
     try{
-        const { username, email, password } = await request.json();
+        const { username, email, password } = await req.body;
 
         const user: IUser | null = await User.findOne({ username });
         if (!user) {
-            return new Response(JSON.stringify({ msg: 'User does not exist' }), { status: 400 });
+            return res.status(400).send('User does not exist');
         }
 
         const isMatch: boolean = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return new Response(JSON.stringify({ msg: 'Invalid password' }), { status: 400 });
+            return res.status(400).send('Invalid password');
         }
 
         const payload = {username}
-        const jwtSecret =process.env.JWT_PHRASE
-        CreateTokenLogin(payload,jwtSecret)
-
+        const jwtSecret =process.env.SECRET_PHRASE
+        const expiresIn ="12h"
+        const jwtoken = await CreateTokenLogin(payload,expiresIn)
+        console.log(jwtoken)
+        res.header('auth-token', jwtoken).send(jwtoken);
     // const token: string = jwt.sign(payload,jwtSecret, { algorithm: 'HS512', expiresIn: '12h'  });
     // return new Response(JSON.stringify({ token, user }), { status: 200 });
 }
     
 catch (error) {
     console.error('Error generating JWT token:', error);
-    return new Response(JSON.stringify({ msg: 'Internal server error', error: error.message }), { status: 500 });
+    return res.status(500).send('Internal server error : '+ error.message );
 }
     });
 
+
+async function verifyToken(req: any, res: any, next: any) { //Midlware to verify if the token is valid and match the user 
+    const { userName } = req.params;
+    const { token } = req.body;
+
+    const validation:Boolean = await VerifyTokenUser(userName, token) 
+    if (!validation) {
+        return res.status(401).send(`Operation impossible; the user ${userName}is not logged in`);
+    }
+    next(); // Move to the next middleware or route handler if the token is valid
+}
+    
 /*Awaited JSON =
 {
-    "nbPeage": 0,
-    "nbCardFail": 1,
-    "nbCardWin": 3,
-	"nbgameWin" : 0,
-	"nbGameAbandoned": 0,
-	"nbGameStarted":0,
-    "nbGameStardedWithAlchool": 0,
-    "nbRedSelected": 0,
-    "nbBlackSelected":0,
-    "nbArriveToLasCard" : 0
-    },
+    token="GI45JG54GJ30GJ204GJ420IG4I0G2GN42INGPZFNO2FN"
+    data:
     {
-        JWT//Json Web Token
-    }
+        "nbPeage": 0,
+        "nbCardFail": 1,
+        "nbCardWin": 3,
+        "nbgameWin" : 0,
+        "nbGameAbandoned": 0,
+        "nbGameStarted":0,
+        "nbGameStardedWithAlchool": 0,
+        "nbRedSelected": 0,
+        "nbBlackSelected":0,
+        "nbArriveToLasCard" : 0
+    },
 }*/
-router.post('/user/:userName/updateScore', async (request)=>{
-    const {userName} = request.params;
-    const {data} = await request.json()
+app.post('/user/:userName/updatescore', verifyToken, async (req:any,res:any)=>{
+    const {userName} = req.params;
+    const {data,token} = req.body
 
-    //Verify if the user is loged
-    const payload = {userName}
-    if (!VerifyTokenUser(payload,data.token)){
-      return new Response(JSON.stringify({ msg: 'Operation imposible the user is not logged in' }), { status: 400 });
-    }
-    
     for (const key in data) {
         if (data.hasOwnProperty(key)) {
           const value:number = data[key as keyof IUserPoints];
@@ -133,7 +141,7 @@ router.post('/user/:userName/updateScore', async (request)=>{
     
 
     // const {addNbPeage,AddNbCardFail,AddNbCardWin,AddNbgameWin,AddNbGameAbandoned} = await request.json();
-    return new Response(JSON.stringify({ msg: 'Score updated with success' }), { status: 200 });
+    return res.status(200).send('Score updated with success' );
      
 });
 
@@ -141,6 +149,9 @@ router.post('/user/:userName/updateScore', async (request)=>{
 When calling this post, every object is optional, only the ones send in the JSON will be set to 0
 
 {
+    token="GI45JG54GJ30GJ204GJ420IG4I0G2GN42INGPZFNO2FN"
+    data:
+    {
     "nbPeage": 0,
     "nbCardFail": 0,
     "nbCardWin": 0,
@@ -151,10 +162,11 @@ When calling this post, every object is optional, only the ones send in the JSON
     "nbRedSelected": 0,
     "nbBlackSelected":0,
     "nbArriveToLasCard" : 0
+    }
 }*/
-router.post('/user/:userName/resetScore', async(request)=>{
-    const {userName} = request.params;
-    const data = await request.json()
+app.post('/user/:userName/resetscore', verifyToken, async(req:any,res:any)=>{
+    const {userName} = req.params;
+    const {data,token} = await req.body
     console.log(data)
     for (const key in data) {
         if (data.hasOwnProperty(key)) {
@@ -163,23 +175,20 @@ router.post('/user/:userName/resetScore', async(request)=>{
             .catch(err=>console.log("post./user/:userName/resetScore : " + err))
         }
       }
-    return new Response(JSON.stringify({ msg: 'Score deleted with success' }), { status: 200 });
+      return res.status(200).send('Score deleted with success');
 
 
 })
 
-router.post('/user/:userName/startGame', async(request)=>{
+app.post('/user/:userName/startGame', async(req:any,res:any)=>{
+
 })
 
-router.post('/user/:userName/endGame', async(request)=>{
+app.post('/user/:userName/endGame', async(req:any,res:any)=>{
 })
 
 
-export default {
-    port: 3000,
-    fetch: (request:any) => router
-                          .handle(request)
-                          .then(json)
-                          .catch(error)
-  }
-// 
+const PORT = 3000;
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+});
