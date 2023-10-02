@@ -180,11 +180,11 @@ app.post('/user/:userName/resetscore', verifyToken, async(req:any,res:any)=>{
 
 })
 
-app.post('/user/:userName/startGame', async(req:any,res:any)=>{
+app.post('/user/:userName/startGame', verifyToken, async(req:any,res:any)=>{
 
 })
 
-app.post('/user/:userName/endGame', async(req:any,res:any)=>{
+app.post('/user/:userName/endGame', verifyToken, async(req:any,res:any)=>{
 })
 
 
