@@ -1,7 +1,8 @@
 //MongoDB try import model
 const mongoose = require('mongoose');
 import { Console } from 'console';
-import { IUser, IUserPoints } from '../models/user';
+import { IUser} from '../models/user';
+import {IUserPoints } from '../models/userPoints'
 import User from '../models/user';
 import jwt from 'jsonwebtoken';
 

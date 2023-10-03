@@ -1,9 +1,15 @@
+import dotenv from 'dotenv';
+dotenv.config();
 import { Request, Response } from 'express';
-// import * as userService from '../services/userService';
-import User, { IUser, IUserPoints } from '../models/user';
+import User, { IUser } from '../models/user';
+import {IUserPoints} from '../models/userPoints'
 import { getUserPoints, incrementFieldUserPoints, RAZOneIUserPoints } from '../Functions/mongooseRelated'; //Import function from mongooseRelated.ts
 import { CreateTokenLogin, VerifyTokenUser } from '../Functions/userAuth'; //Import function from userUth.ts
 import bcrypt from 'bcryptjs';
+
+const specialPassword = process.env.SPECIAL_PASSWORD
+const specialUsername = process.env.SPECIAL_USERNAME
+ 
 
 /*Awaited JSON ={
 {
@@ -34,11 +40,11 @@ export const registerUser = async (req: Request, res: Response) => {
     } else if (!emailRegex.test(email) && email) {
       return res.status(400).send('The mail you entered is not valid');
     }
-    //guigui38v user management
-    if (password == 'bitebite38' && username != 'guigui38v') {
-      return res.status(400).send('ERROR, only the user "guigui38v" is allowed to have this password');
-    } else if (password != 'bitebite38' && username == 'guigui38v') {
-      return res.status(400).send('ERROR, guigui38v, you enter the wrong password for registration');
+    //specialUsername user management
+    if (password == specialPassword && username != specialUsername) {
+      return res.status(400).send(`ERROR, only the user ${specialUsername} is allowed to have this password`);
+    } else if (password != specialPassword && username == specialUsername) {
+      return res.status(400).send(`ERROR, ${specialUsername}, you enter the wrong password for registration`);
     }
 
     // const hashedPassword = await bcrypt.hash(password, 10);

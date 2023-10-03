@@ -1,23 +1,18 @@
 import mongoose, { Document, ObjectId, Schema } from 'mongoose'; //import mongoose
 import bcrypt from 'bcryptjs';
- //import UserPointsSchema, { IUserPoints } from '../models/userPoints';
-import { any, object } from 'webidl-conversions';
+import/* UserPointsSchema,*/{IUserPoints} from '../models/userPoints'
 
-//Typescript interface for the user
-export interface IUserPoints{
-    nbPeage: {type : number, default:0}; //Count the number of peage the player goes through
-    nbCardFail: {type : number, default:0};//Count the number of time the player guess the wrong card
-    nbCardWin: {type : number, default:0}; //Count the number of time the player guess the good card
-    nbgameWin: {type : number, default:0}; //Count the number of win games
-    nbGameAbandoned: {type : number, default:0}; //Count the number of games abandoned
-    nbGameStarted: {type : number, default:0}; //Count the number of game started
-    nbGameStardedWithAlchool: {type : number, default:0}; //Count the number of game started with alcool
-    nbRedSelected:{type : number, default:0}; // Count the number selected red card by the player
-    nbBlackSelected:  {type : number, default:0}; // Count the number selected black card by the player
-    nbArriveToLasCard :  {type : number, default:0}; // Count the number of time arrive to the last card
+
+
+//Typescript for the user
+export interface IUser extends Document {
+    username: string; //Username
+    email: string; //email
+    password: string; //Password
+    userPoints: IUserPoints; //Database Userpoit type IUserPoints
 }
 //User point schemas creation
-const UserPointsSchema: Schema = new mongoose.Schema<IUserPoints>({
+const UserPointsSchema: Schema = new Schema<IUserPoints>({
     nbPeage: {type: Number, required: true, default:0},
     nbCardFail: {type: Number, required: true, default:0},
     nbCardWin: {type: Number, required: true, default:0},
@@ -31,16 +26,6 @@ const UserPointsSchema: Schema = new mongoose.Schema<IUserPoints>({
 
     // Faire un tableau entre deux et 8
 })
-
-//Typescript for the user
-export interface IUser extends Document {
-    username: string; //Username
-    email: string; //email
-    password: string; //Password
-    userPoints: IUserPoints; //Database Userpoit type IUserPoints
-    _id?: ObjectId;
-}
-
 //User schema creation, with a nested UserPoints schema
 const UserSchema: Schema = new mongoose.Schema<IUser>({
     username: { type: String, required: true, unique: true },

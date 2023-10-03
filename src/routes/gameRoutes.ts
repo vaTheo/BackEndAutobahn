@@ -4,7 +4,7 @@ const express = require('express');
 
 const router = express.Router();
 
-router.post('/:userName/startGame', verifyToken,startGame);
-router.post('/:userName/endGame', verifyToken,endGame);
+router.post('/startGame',startGame);
+router.post('/endGame',endGame);
 
 export default router;

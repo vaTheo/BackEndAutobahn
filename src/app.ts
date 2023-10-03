@@ -1,8 +1,11 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import express from 'express';
-import userRoutes from './routes/userRoutes';
+import userRouter from './routes/userRoutes';
+import gameRouter from './routes/gameRoutes';
+import {errorHandler} from './Controlers/errorControlers'
 const mongoose = require('mongoose');
+
 
 
 console.log(process.env.MONGODB_URL)
@@ -18,7 +21,10 @@ mongoose
 // express server conexion
 const app = express();
 app.use(express.json()); // for parsing application/json
-app.use('/user', userRoutes);
+app.use('/user', userRouter);
+app.use('/game', gameRouter);
+
+app.use('*',errorHandler);
 
 const PORT = 3000;
 app.listen(PORT, () => {
