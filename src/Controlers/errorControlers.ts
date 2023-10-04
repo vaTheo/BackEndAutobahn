@@ -3,6 +3,6 @@ import { Request, Response, NextFunction } from 'express';
 
 export const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error(err.stack);
-  res.status(500).send('Something broke error Handler activated');
+  res.status(500).send('Ther page you search does not exist');
 };
 

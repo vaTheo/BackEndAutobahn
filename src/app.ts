@@ -4,6 +4,8 @@ import express from 'express';
 import userRouter from './routes/userRoutes';
 import gameRouter from './routes/gameRoutes';
 import {errorHandler} from './Controlers/errorControlers'
+const helmet = require('helmet');
+
 const mongoose = require('mongoose');
 
 
@@ -21,9 +23,9 @@ mongoose
 // express server conexion
 const app = express();
 app.use(express.json()); // for parsing application/json
+app.use(helmet());
 app.use('/user', userRouter);
 app.use('/game', gameRouter);
-
 app.use('*',errorHandler);
 
 const PORT = 3000;

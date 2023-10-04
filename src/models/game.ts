@@ -7,6 +7,9 @@ export interface IGame extends Document {
   gameID: number; //Game ID
   userPlaying: string; //Wich player is playing
   adminPlaying: string; //IF an admin is playing with the player
+  startTime: Date;
+  endTime:Date;
+  gameInProgress : boolean;
   userPoints: IUserPoints; //Database Userpoit type IUserPoints
 }
 
@@ -31,6 +34,9 @@ const GameSchema: Schema = new mongoose.Schema<IGame>({
   gameID: { type: Number, required: true, unique: true, default: 0 },
   userPlaying: { type: String, required: true }, // sparse is used to not have a duplicate items error if the field is empty
   adminPlaying: { type: String, required: false },
+  startTime: { type: Date, required: false },
+  endTime:{ type: Date, required: false },
+  gameInProgress : { type: Boolean, required: true, default: true },
   userPoints: { type: UserPointsSchema, required: true } , //{type : UserPointsSchema, required:true, default:{nbPeage :0,nbCardFail:0,nbCardWin:0,nbgameWin:0,nbGameAbandoned:0}}
 });
 
@@ -41,11 +47,35 @@ GameSchema.pre<IGame>('save', async function (next) {
   try {
     const greterGameID = await findGreaterGameID();
     this.gameID = greterGameID + 1;
+    console.log(this.gameID)
     next();
   } catch (err) {
     console.log(err);
   }
 });
+
+GameSchema.pre<IGame>('save', async function (next) {
+  //<IUser> refer to the type of the .this will refer to
+  try {
+    
+    this.startTime = new Date();
+    next();
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+GameSchema.pre<IGame>('save', async function (next) {
+  //<IUser> refer to the type of the .this will refer to
+  try {
+    
+    this.gameInProgress = true;
+    next();
+  } catch (err) {
+    console.log(err);
+  }
+});
+
 
 //Export the shema as model, using typescript IUser type
 export default mongoose.model<IGame>('Game', GameSchema);
