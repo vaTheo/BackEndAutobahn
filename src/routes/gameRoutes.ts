@@ -1,5 +1,5 @@
 import { verifyToken } from '../midlware';
-import {startGame,endGame} from '../Controlers/gameControlers'
+import {startGame,endGame} from '../controlers/gameControlers'
 import {userExistInGame,endAGameAndTest,saveDataToTheGame} from '../midlware'
 const express = require('express');
 

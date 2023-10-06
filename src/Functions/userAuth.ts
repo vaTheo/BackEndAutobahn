@@ -3,7 +3,10 @@ dotenv.config();
 import jwt from 'jsonwebtoken';
 const secret= process.env.SECRET_PHRASE
 
-export async function CreateTokenLogin(payload: any, expiresIn:string){
+// export async function CreateTokenLogin(payload: any, expiresIn:string){
+  // I should test this befor send push 
+  export async function CreateTokenLogin({ payload}: {payload: {username: string}}, expiresIn:string){
+
   const token = await jwt.sign(payload,secret, { expiresIn: '12h' });
   return token
   }

@@ -1,5 +1,5 @@
 import { verifyToken } from '../midlware';
-import { registerUser, loginUser, updatescore, resetScore } from '../Controlers/userControlers';
+import { registerUser, loginUser, updatescore, resetScore } from '../controlers/userControlers';
 const express = require('express');
 
 const router = express.Router();

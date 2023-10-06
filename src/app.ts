@@ -3,14 +3,10 @@ dotenv.config();
 import express from 'express';
 import userRouter from './routes/userRoutes';
 import gameRouter from './routes/gameRoutes';
-import {errorHandler} from './Controlers/errorControlers'
+import {errorHandler} from './controlers/errorControlers'
 const helmet = require('helmet');
 
 const mongoose = require('mongoose');
-
-
-
-console.log(process.env.MONGODB_URL)
 //MongoDB connection
 mongoose
   .connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnifiedTopology: true })

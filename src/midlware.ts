@@ -7,11 +7,21 @@ import {IUserPoints} from './models/userPoints';
 export async function verifyToken(req: any, res: any, next: any) {
   //Midlware to verify if the token is valid and match the user
   const { userName } = req.params;
-  const { token } = req.body;
+  const authHeader = req.headers.authHeader;
+
+  if (!authHeader) {
+    return res.status(401).send('Authorization header missing');
+  }
+ // Assumes there is Bearer token scheme like: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+  const token = authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).send('Token missing from Authorization header');
+  }
 
   const validation: Boolean = await VerifyTokenUser(userName, token);
   if (!validation) {
-    return res.status(401).send(`Operation impossible; the user ${userName}is not logged in`);
+    return res.status(401).send(`Operation impossible; the user ${userName} is not logged in`);
   }
   next(); // Move to the next middleware or route handler if the token is valid
 }
@@ -21,11 +31,10 @@ export async function userExistInGame(req: any, res: any, next: any) {
   const data = req.body as IGame ;
 
    try{
-      const query = User.where({ username: data.userPlaying });
-      const user = await query.findOne();
+
+      const user = await User.where({ username: data.userPlaying }).findOne();
       if (data.adminPlaying){ //If there is an admin also playing 
-        const query = User.where({ username: data.adminPlaying });
-        const userAdmin = await query.findOne();
+        const userAdmin = await User.where({ username: data.adminPlaying }).findOne();
       }
       if (!user){
         return res.status(500).send(`Operation impossible; the user ${data.userPlaying} does not exist`);
@@ -46,7 +55,7 @@ export async function endAGameAndTest (req: any, res: any, next: any){
     const gameID = data.gameID;  // Extract the gameID from the request body
 
     // Find the game with the given gameID
-    const game  = await Game.findOne({ gameID: gameID } )as IGame;
+    const game  = await Game.findOne({ gameID} )as IGame;
     
     if (!game) {
       return res.status(404).send(`Game with ID ${gameID} not found`);

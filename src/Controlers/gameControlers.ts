@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { IUserPoints } from '../models/userPoints';
 import game, { IGame } from '../models/game';
-import { incrementFieldUserPoints } from '../Functions/mongooseRelated';
+import { incrementFieldUserPoints } from '../functions/mongooseRelated';
 
 
 /*Expected JSON

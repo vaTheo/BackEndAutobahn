@@ -1,7 +1,6 @@
 {
     "compilerOptions": {
-        "module": "CommonJS", //fireship recomande NodeNext
-        // "moduleResolution": "NodeNext"
+        "module": "CommonJS", 
         "esModuleInterop": true,
         "allowSyntheticDefaultImports": true,
         "target": "ES6",
@@ -9,8 +8,12 @@
         "moduleResolution": "node",
         "sourceMap": true,
         "outDir": "dist",
-        "baseUrl": ".",
+        "baseUrl": "./",
         "paths": {
+            "@models/*": ["src/models/*"],
+            "@controlers/*": ["src/controlers/*"],
+            "@routes/*":["src/routes/*"],
+            "@functions/*":["src/functions/*"],
             "*": [
                 "node_modules/*",
                 "src/types/*"

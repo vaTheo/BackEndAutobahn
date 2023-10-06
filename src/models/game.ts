@@ -1,5 +1,5 @@
 import mongoose, { Document, ObjectId, Schema } from 'mongoose'; //import mongoose
-import { findGreaterGameID } from '../Functions/gameFunction';
+import { findGreaterGameID } from '../functions/gameFunction';
 import /*UserPointsSchema,*/ { IUserPoints } from '../models/userPoints';
 
 //Typescript for the user

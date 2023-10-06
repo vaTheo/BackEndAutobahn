@@ -3,7 +3,7 @@ dotenv.config();
 import { Request, Response } from 'express';
 import User, { IUser } from '../models/user';
 import {IUserPoints} from '../models/userPoints'
-import { getUserPoints, incrementFieldUserPoints, RAZOneIUserPoints } from '../Functions/mongooseRelated'; //Import function from mongooseRelated.ts
+import { getUserPoints, incrementFieldUserPoints, RAZOneIUserPoints } from '../functions/mongooseRelated'; //Import function from mongooseRelated.ts
 import { CreateTokenLogin, VerifyTokenUser } from '../Functions/userAuth'; //Import function from userUth.ts
 import bcrypt from 'bcryptjs';
 
@@ -63,10 +63,12 @@ export const registerUser = async (req: Request, res: Response) => {
    "username": "[username]",
    "password":"[password]",
 }
-}*/
+}
+with security header containig the JWT
+*/
 export const loginUser = async (req: Request, res: Response) => {
   try {
-    const { username, email, password } = await req.body;
+    const { username, email, password } = await req.body as IUser;
 
     const user: IUser | null = await User.findOne({ username });
     if (!user) {
@@ -78,12 +80,8 @@ export const loginUser = async (req: Request, res: Response) => {
       return res.status(400).send('Invalid password');
     }
 
-    const payload = { username };
-    const jwtSecret = process.env.SECRET_PHRASE;
-    const expiresIn = '12h';
-    const jwtoken = await CreateTokenLogin(payload, expiresIn);
-    console.log(jwtoken);
-    res.header('auth-token', jwtoken).send(jwtoken);
+    const jwtoken = await CreateTokenLogin({ payload: {username} }, '12h');
+    res.header('authHeader', jwtoken).send(jwtoken);
     // const token: string = jwt.sign(payload,jwtSecret, { algorithm: 'HS512', expiresIn: '12h'  });
     // return new Response(JSON.stringify({ token, user }), { status: 200 });
   } catch (err) {
@@ -156,7 +154,6 @@ export const resetScore = async (req: Request, res: Response) => {
   try {
     const { userName } = req.params;
     const { data, token } = await req.body;
-    console.log(data);
     for (const key in data) {
       if (data.hasOwnProperty(key)) {
         const value: number = data[key as keyof Partial<IUserPoints>];
