@@ -5,12 +5,13 @@ import /*UserPointsSchema,*/ { IUserPoints } from '../models/userPoints';
 //Typescript for the user
 export interface IGame extends Document {
   gameID: number; //Game ID
-  userPlaying: string; //Wich player is playing
-  adminPlaying: string; //IF an admin is playing with the player
+  IDPlaying: string; //Wich player is playing
+  IDAdmin: string; //IF an admin is playing with the player
   startTime: Date;
   endTime:Date;
   gameInProgress : boolean;
   userPoints: IUserPoints; //Database Userpoit type IUserPoints
+  _ID?:ObjectId
 }
 
 //User point schemas creation
@@ -32,8 +33,8 @@ const UserPointsSchema: Schema = new Schema<IUserPoints>({
 //User schema creation, with a nested UserPoints schema
 const GameSchema: Schema = new mongoose.Schema<IGame>({
   gameID: { type: Number, required: true, unique: true, default: 0 },
-  userPlaying: { type: String, required: true }, // sparse is used to not have a duplicate items error if the field is empty
-  adminPlaying: { type: String, required: false },
+  IDPlaying: { type: String, required: true }, // sparse is used to not have a duplicate items error if the field is empty
+  IDAdmin: { type: String, required: false },
   startTime: { type: Date, required: false },
   endTime:{ type: Date, required: false },
   gameInProgress : { type: Boolean, required: true, default: true },
@@ -45,9 +46,9 @@ const GameSchema: Schema = new mongoose.Schema<IGame>({
 GameSchema.pre<IGame>('save', async function (next) {
   //<IUser> refer to the type of the .this will refer to
   try {
+    
     const greterGameID = await findGreaterGameID();
     this.gameID = greterGameID + 1;
-    console.log(this.gameID)
     next();
   } catch (err) {
     console.log(err);

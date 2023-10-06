@@ -15,21 +15,21 @@ export async function getUserPoints(username: string): Promise<IUserPoints | nul
 }
 
 export async function incrementFieldUserPoints(
-  username: string,
+  userid: string,
   fieldName: string,
   incrementValue: number,
 ): Promise<void> {
   const updatePath = `userPoints.${fieldName}`;
 
-  await User.updateOne({ username: username }, { $inc: { [updatePath]: incrementValue } }).catch((err) =>
+  await User.findByIdAndUpdate(userid, { $inc: { [updatePath]: incrementValue } }).catch((err) =>
     console.log('Function incrementFieldUserPoints : ' + err),
   );
 }
 
-export async function RAZOneIUserPoints(username: string, fieldName: string): Promise<void> {
+export async function RAZOneIUserPoints(userid: string, fieldName: string): Promise<void> {
   const updatePath = `userPoints.${fieldName}`;
 
-  await User.updateOne({ username: username }, { $set: { [updatePath]: 0 } }).catch((err) =>
+  await User.findByIdAndUpdate(userid, { $set: { [updatePath]: 0 } }).catch((err) =>
     console.log('Function RAZOneIUserPoints : ' + err),
   );
 }

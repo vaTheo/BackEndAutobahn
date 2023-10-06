@@ -62,7 +62,7 @@ export const endGame = async (req: Request, res: Response) => {
     for (const key in data.userPoints) {
         const value: number = data.userPoints[key as keyof IUserPoints];
         if (value != 0) {
-          await incrementFieldUserPoints(data.userPlaying, key, value).catch((err) => {
+          await incrementFieldUserPoints(data.IDPlaying, key, value).catch((err) => {
             console.log('Function endGame : ' + err);
           });
        }

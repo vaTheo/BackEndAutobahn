@@ -1,4 +1,4 @@
-import { CreateTokenLogin, VerifyTokenUser } from '../src/Functions/userAuth'; //Import function from userUth.ts
+import { CreateTokenLogin, VerifyTokenUser } from './functions/userAuth'; //Import function from userauth.ts
 import { IGame } from './models/game';
 import User from './models/user';
 import Game from './models/game';
@@ -6,45 +6,48 @@ import {IUserPoints} from './models/userPoints';
 
 export async function verifyToken(req: any, res: any, next: any) {
   //Midlware to verify if the token is valid and match the user
-  const { userName } = req.params;
-  const authHeader = req.headers.authHeader;
+  const authheader = await req.headers.authheader
+  const userid = await req.headers.userid
 
-  if (!authHeader) {
+  if (!authheader) {
     return res.status(401).send('Authorization header missing');
   }
+  if (!userid) {
+    return res.status(401).send('UserID header missing');
+  }
  // Assumes there is Bearer token scheme like: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-  const token = authHeader.split(' ')[1];
+  const token = authheader.split(' ')[1];
 
   if (!token) {
     return res.status(401).send('Token missing from Authorization header');
   }
 
-  const validation: Boolean = await VerifyTokenUser(userName, token);
+  const validation: Boolean = await VerifyTokenUser(userid, token);
   if (!validation) {
-    return res.status(401).send(`Operation impossible; the user ${userName} is not logged in`);
+    return res.status(401).send(`Operation impossible; the userID ${userid} is not logged in`);
   }
   next(); // Move to the next middleware or route handler if the token is valid
 }
 
 export async function userExistInGame(req: any, res: any, next: any) {
   //Midlware to verifythe user put in game schema exist
-  const data = req.body as IGame ;
+  const data = await req.body as IGame ;
+  console.log(data)
 
    try{
-
-      const user = await User.where({ username: data.userPlaying }).findOne();
-      if (data.adminPlaying){ //If there is an admin also playing 
-        const userAdmin = await User.where({ username: data.adminPlaying }).findOne();
+      const user = await User.findById(data.IDPlaying).findOne();
+      if (data.IDAdmin){ //If there is an admin also playing 
+        const userAdmin = await User.where({ username: data.IDAdmin }).findOne();
       }
       if (!user){
-        return res.status(500).send(`Operation impossible; the user ${data.userPlaying} does not exist`);
+        return res.status(500).send(`Operation impossible; the user ${data.IDPlaying} does not exist`);
 
       }
 
   next(); // Move to the next middleware or route handler if theuser exist
 }catch(err){
   console.log('Error midlware userExistInGame :' + err)
-  return res.status(500).send(`Operation impossible; the user ${data.userPlaying} or admin ${data.adminPlaying}does not exist`);
+  return res.status(500).send(`Operation impossible; the user ${data.IDPlaying} or admin ${data.IDAdmin}does not exist`);
 
 }
 }

@@ -10,6 +10,7 @@ export interface IUser extends Document {
     email: string; //email
     password: string; //Password
     userPoints: IUserPoints; //Database Userpoit type IUserPoints
+    _ID?:ObjectId;
 }
 //User point schemas creation
 const UserPointsSchema: Schema = new Schema<IUserPoints>({

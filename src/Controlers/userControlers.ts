@@ -4,7 +4,7 @@ import { Request, Response } from 'express';
 import User, { IUser } from '../models/user';
 import {IUserPoints} from '../models/userPoints'
 import { getUserPoints, incrementFieldUserPoints, RAZOneIUserPoints } from '../functions/mongooseRelated'; //Import function from mongooseRelated.ts
-import { CreateTokenLogin, VerifyTokenUser } from '../Functions/userAuth'; //Import function from userUth.ts
+import { CreateTokenLogin, VerifyTokenUser } from '../functions/userAuth'; //Import function from userUth.ts
 import bcrypt from 'bcryptjs';
 
 const specialPassword = process.env.SPECIAL_PASSWORD
@@ -64,7 +64,8 @@ export const registerUser = async (req: Request, res: Response) => {
    "password":"[password]",
 }
 }
-with security header containig the JWT
+with authHeader header containig the JWT
+with UserID header is user ID
 */
 export const loginUser = async (req: Request, res: Response) => {
   try {
@@ -79,16 +80,16 @@ export const loginUser = async (req: Request, res: Response) => {
     if (!isMatch) {
       return res.status(400).send('Invalid password');
     }
+    const userIdString = user._id.toString();
+    const jwtoken = await CreateTokenLogin({ payload: {userIdString} }, '12h');
+    res.status(200).header('authHeader','Bearer '+ jwtoken).header('UserID',userIdString).send(`User ${username} loged in`);
 
-    const jwtoken = await CreateTokenLogin({ payload: {username} }, '12h');
-    res.header('authHeader', jwtoken).send(jwtoken);
-    // const token: string = jwt.sign(payload,jwtSecret, { algorithm: 'HS512', expiresIn: '12h'  });
-    // return new Response(JSON.stringify({ token, user }), { status: 200 });
   } catch (err) {
     console.log('Function userControlers, loginUser err: ' + err);
     return res.status(500).send('Internal server error : ' + err.message);
   }
 };
+
 
 /*Awaited JSON =
 {
@@ -109,14 +110,15 @@ export const loginUser = async (req: Request, res: Response) => {
 }*/
 export const updatescore = async (req: Request, res: Response) => {
   try {
-    const { userName } = req.params;
-    const { data, token } = req.body;
+    const userid = await req.headers.userid as string
+    const  data = req.body as IUserPoints;
 
+    data?null:console.log('Function updatescore(), wrong data : ' + data)
     for (const key in data) {
       if (data.hasOwnProperty(key)) {
         const value: number = data[key as keyof IUserPoints];
         if (value != 0) {
-          await incrementFieldUserPoints(userName, key, value).catch((err) =>
+          await incrementFieldUserPoints(userid, key, value).catch((err) =>
             console.log('post./user/:userName/updateScore : ' + err),
           );
         }
@@ -135,29 +137,26 @@ export const updatescore = async (req: Request, res: Response) => {
 When calling this post, every object is optional, only the ones send in the JSON will be set to 0
 
 {
-    token="GI45JG54GJ30GJ204GJ420IG4I0G2GN42INGPZFNO2FN"
-    data:
-    {
-    "nbPeage": 0,
-    "nbCardFail": 0,
-    "nbCardWin": 0,
+  "nbPeage": 0,
+  "nbCardFail": 0,
+  "nbCardWin": 0,
 	"nbgameWin" : 0,
 	"nbGameAbandoned": 0,
 	"nbGameStarted":0,
-    "nbGameStardedWithAlchool": 0,
-    "nbRedSelected": 0,
-    "nbBlackSelected":0,
-    "nbArriveToLasCard" : 0
-    }
+  "nbGameStardedWithAlchool": 0,
+  "nbRedSelected": 0,
+  "nbBlackSelected":0,
+  "nbArriveToLasCard" : 0
 }*/
 export const resetScore = async (req: Request, res: Response) => {
   try {
-    const { userName } = req.params;
-    const { data, token } = await req.body;
+    const data = await req.body as IUserPoints;
+    const userid = await req.headers.userid as string
+    
     for (const key in data) {
       if (data.hasOwnProperty(key)) {
         const value: number = data[key as keyof Partial<IUserPoints>];
-        await RAZOneIUserPoints(userName, key).catch((err) =>
+        await RAZOneIUserPoints(userid, key).catch((err) =>
           console.log('post./user/:userName/resetScore : ' + err),
         );
       }
