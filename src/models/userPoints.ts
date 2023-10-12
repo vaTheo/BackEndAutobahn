@@ -12,6 +12,7 @@ export interface IUserPoints extends Document {
     nbRedSelected:{type : number, default:0}; // Count the number selected red card by the player
     nbBlackSelected:  {type : number, default:0}; // Count the number selected black card by the player
     nbArriveToLasCard :  {type : number, default:0}; // Count the number of time arrive to the last card
+    autoBahnXCard: {type: []}
 }
 // //User point schemas creation
 // const UserPointsSchema: Schema = new Schema<IUserPoints>({

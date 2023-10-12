@@ -23,9 +23,9 @@ const UserPointsSchema: Schema = new Schema<IUserPoints>({
     nbGameStardedWithAlchool:  {type: Number, required: true, default:0},
     nbRedSelected: {type: Number, required: true, default:0},
     nbBlackSelected:  {type: Number, required: true, default:0},
-    nbArriveToLasCard :  {type: Number, required: true, default:0}
+    nbArriveToLasCard :  {type: Number, required: true, default:0},
+    autoBahnXCard :  {type: Array, required: true,default:[0,0,0,0,0,0,0,0,0]}
 
-    // Faire un tableau entre deux et 8
 })
 //User schema creation, with a nested UserPoints schema
 const UserSchema: Schema = new mongoose.Schema<IUser>({

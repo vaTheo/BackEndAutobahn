@@ -1,6 +1,6 @@
 import mongoose, { Document, ObjectId, Schema } from 'mongoose'; //import mongoose
 import { findGreaterGameID } from '../functions/gameFunction';
-import /*UserPointsSchema,*/ { IUserPoints } from '../models/userPoints';
+import /*UserPointsSchema,*/ { IUserPoints} from '../models/userPoints';
 
 //Typescript for the user
 export interface IGame extends Document {
@@ -10,9 +10,12 @@ export interface IGame extends Document {
   startTime: Date;
   endTime:Date;
   gameInProgress : boolean;
+  nuberCardAutobahn : number // THe number of card in the autoabahn, btw 2 and 8
   userPoints: IUserPoints; //Database Userpoit type IUserPoints
   _ID?:ObjectId
 }
+
+
 
 //User point schemas creation
 const UserPointsSchema: Schema = new Schema<IUserPoints>({
@@ -25,7 +28,9 @@ const UserPointsSchema: Schema = new Schema<IUserPoints>({
     nbGameStardedWithAlchool:  {type: Number, required: true, default:0},
     nbRedSelected: {type: Number, required: true, default:0},
     nbBlackSelected:  {type: Number, required: true, default:0},
-    nbArriveToLasCard :  {type: Number, required: true, default:0}
+    nbArriveToLasCard :  {type: Number, required: true, default:0},
+    autoBahnXCard :  {type: [], required: true},
+
 
     // Faire un tableau entre deux et 8
 })
@@ -38,6 +43,7 @@ const GameSchema: Schema = new mongoose.Schema<IGame>({
   startTime: { type: Date, required: false },
   endTime:{ type: Date, required: false },
   gameInProgress : { type: Boolean, required: true, default: true },
+  nuberCardAutobahn:{type:Number, required:true,default:0},
   userPoints: { type: UserPointsSchema, required: true } , //{type : UserPointsSchema, required:true, default:{nbPeage :0,nbCardFail:0,nbCardWin:0,nbgameWin:0,nbGameAbandoned:0}}
 });
 

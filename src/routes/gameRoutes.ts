@@ -1,6 +1,6 @@
-import { verifyToken } from '../midlware';
+import { verifyToken } from '../middleware';
 import {startGame,endGame} from '../controlers/gameControlers'
-import {userExistInGame,endAGameAndTest,saveDataToTheGame} from '../midlware'
+import {userExistInGame,endAGameAndTest,saveDataToTheGame} from '../middleware'
 const express = require('express');
 
 const router = express.Router();

@@ -6,7 +6,8 @@ import {IUserPoints} from '../models/userPoints'
 import { getUserPoints, incrementFieldUserPoints, RAZOneIUserPoints } from '../functions/mongooseRelated'; //Import function from mongooseRelated.ts
 import { CreateTokenLogin, VerifyTokenUser } from '../functions/userAuth'; //Import function from userUth.ts
 import bcrypt from 'bcryptjs';
-
+import { IGame } from '@models/game';
+import {IupdateScoreReq,IresetScoreReq,IregisterReq,IloginReq,IgameStartReq,IgameEndReq} from '../types/typesRequest';
 const specialPassword = process.env.SPECIAL_PASSWORD
 const specialUsername = process.env.SPECIAL_USERNAME
  
@@ -18,7 +19,7 @@ const specialUsername = process.env.SPECIAL_USERNAME
 	"userPoints" : {}
 }
 }*/
-export const registerUser = async (req: Request, res: Response) => {
+export const registerUser = async (req: Request<IregisterReq>, res: Response) => {
   try {
     const { username, email, password, userPoints } = await req.body;
     //Check if the user and email is allready existing
@@ -67,7 +68,7 @@ export const registerUser = async (req: Request, res: Response) => {
 with authHeader header containig the JWT
 with UserID header is user ID
 */
-export const loginUser = async (req: Request, res: Response) => {
+export const loginUser = async (req: Request<IloginReq>, res: Response) => {
   try {
     const { username, email, password } = await req.body as IUser;
 
@@ -75,14 +76,14 @@ export const loginUser = async (req: Request, res: Response) => {
     if (!user) {
       return res.status(400).send('User does not exist');
     }
-
+    //Does the password match?
     const isMatch: boolean = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).send('Invalid password');
     }
     const userIdString = user._id.toString();
     const jwtoken = await CreateTokenLogin({ payload: {userIdString} }, '12h');
-    res.status(200).header('authHeader','Bearer '+ jwtoken).header('UserID',userIdString).send(`User ${username} loged in`);
+    res.status(200).header('authorization','Bearer '+ jwtoken).header('UserID',userIdString).send(`User ${username} loged in`);
 
   } catch (err) {
     console.log('Function userControlers, loginUser err: ' + err);
@@ -108,17 +109,18 @@ export const loginUser = async (req: Request, res: Response) => {
         "nbArriveToLasCard" : 0
     },
 }*/
-export const updatescore = async (req: Request, res: Response) => {
+export const updatescore = async (req: Request<IupdateScoreReq>, res: Response) => {
   try {
     const userid = await req.headers.userid as string
-    const  data = req.body as IUserPoints;
+    const  data = req.body
 
-    data?null:console.log('Function updatescore(), wrong data : ' + data)
+    data?null:console.log('Function updatescore(), no data : ' + data)
+
     for (const key in data) {
       if (data.hasOwnProperty(key)) {
-        const value: number = data[key as keyof IUserPoints];
+        const value: number = data[key as keyof IupdateScoreReq];
         if (value != 0) {
-          await incrementFieldUserPoints(userid, key, value).catch((err) =>
+           incrementFieldUserPoints(userid, key, value).catch((err) =>
             console.log('post./user/:userName/updateScore : ' + err),
           );
         }
@@ -148,14 +150,14 @@ When calling this post, every object is optional, only the ones send in the JSON
   "nbBlackSelected":0,
   "nbArriveToLasCard" : 0
 }*/
-export const resetScore = async (req: Request, res: Response) => {
+export const resetScore = async (req: Request<IresetScoreReq>, res: Response) => {
   try {
-    const data = await req.body as IUserPoints;
+    const data = await req.body 
     const userid = await req.headers.userid as string
     
     for (const key in data) {
       if (data.hasOwnProperty(key)) {
-        const value: number = data[key as keyof Partial<IUserPoints>];
+        const value: number = data[key as keyof Partial<IresetScoreReq>];
         await RAZOneIUserPoints(userid, key).catch((err) =>
           console.log('post./user/:userName/resetScore : ' + err),
         );

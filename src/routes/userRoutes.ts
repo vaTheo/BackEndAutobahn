@@ -1,4 +1,4 @@
-import { verifyToken } from '../midlware';
+import { verifyToken } from '../middleware';
 import { registerUser, loginUser, updatescore, resetScore } from '../controlers/userControlers';
 const express = require('express');
 
@@ -10,5 +10,5 @@ router.post('/:userName/updatescore', verifyToken, updatescore);
 router.post('/:userName/resetscore', verifyToken, resetScore);
 router.post('/:userName/startGame', verifyToken);
 router.post('/:userName/endGame', verifyToken);
-
+ 
 export default router;

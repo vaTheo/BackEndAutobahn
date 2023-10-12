@@ -1,22 +1,23 @@
 import { CreateTokenLogin, VerifyTokenUser } from './functions/userAuth'; //Import function from userauth.ts
 import { IGame } from './models/game';
-import User from './models/user';
+import User, { IUser } from './models/user';
 import Game from './models/game';
 import {IUserPoints} from './models/userPoints';
+import { Request, Response,NextFunction } from 'express';
 
-export async function verifyToken(req: any, res: any, next: any) {
+export async function verifyToken(req: Request, res: Response, next: NextFunction) {
   //Midlware to verify if the token is valid and match the user
-  const authheader = await req.headers.authheader
-  const userid = await req.headers.userid
+  const authorization  = await req.headers.authorization 
+  const userid = await req.headers.userid as string
 
-  if (!authheader) {
+  if (!authorization ) {
     return res.status(401).send('Authorization header missing');
   }
   if (!userid) {
     return res.status(401).send('UserID header missing');
   }
  // Assumes there is Bearer token scheme like: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-  const token = authheader.split(' ')[1];
+  const token = authorization.split(' ')[1];
 
   if (!token) {
     return res.status(401).send('Token missing from Authorization header');
@@ -29,7 +30,7 @@ export async function verifyToken(req: any, res: any, next: any) {
   next(); // Move to the next middleware or route handler if the token is valid
 }
 
-export async function userExistInGame(req: any, res: any, next: any) {
+export async function userExistInGame(req: Request, res: Response, next: NextFunction) {
   //Midlware to verifythe user put in game schema exist
   const data = await req.body as IGame ;
   console.log(data)
@@ -52,7 +53,7 @@ export async function userExistInGame(req: any, res: any, next: any) {
 }
 }
 
-export async function endAGameAndTest (req: any, res: any, next: any){
+export async function endAGameAndTest (req: Request, res: Response, next: NextFunction){
   try {
     const data = req.body as IGame
     const gameID = data.gameID;  // Extract the gameID from the request body
@@ -80,7 +81,7 @@ export async function endAGameAndTest (req: any, res: any, next: any){
   }
 };
 
-export async function saveDataToTheGame (req: any, res: any, next: any){
+export async function saveDataToTheGame (req: Request, res: Response, next: NextFunction){
   try {
     const data = (await req.body) as IGame;
     //Put the data of the JSON inside the game for futre stats

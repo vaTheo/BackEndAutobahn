@@ -21,7 +21,7 @@ export async function incrementFieldUserPoints(
 ): Promise<void> {
   const updatePath = `userPoints.${fieldName}`;
 
-  await User.findByIdAndUpdate(userid, { $inc: { [updatePath]: incrementValue } }).catch((err) =>
+   User.findByIdAndUpdate(userid, { $inc: { [updatePath]: incrementValue } }).catch((err) =>
     console.log('Function incrementFieldUserPoints : ' + err),
   );
 }

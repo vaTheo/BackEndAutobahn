@@ -12,7 +12,7 @@ mongoose
   .connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('Connexion à MongoDB réussie !'))
   .catch((err:any) => {
-    console.log('Connexion à MongoDB échouée !');
+    console.log('Connexion à MongoDB échouée !');    
     console.log(err);
   });
 
