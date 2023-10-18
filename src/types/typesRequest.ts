@@ -10,11 +10,14 @@ export interface IresetScoreReq{
 export interface IregisterReq {
   username: string;
   password: string;
-  userPOints: object;
+  userPoints: object;
 }
 export interface IloginReq {
   username: string;
   password: string;
+}
+export interface IlogoutReq {
+  username: string;
 }
 export interface IgameStartReq {
   IDPlaying: string;

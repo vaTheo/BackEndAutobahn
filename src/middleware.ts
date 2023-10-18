@@ -4,28 +4,33 @@ import User, { IUser } from './models/user';
 import Game from './models/game';
 import {IUserPoints} from './models/userPoints';
 import { Request, Response,NextFunction } from 'express';
+let revokedTokens: string[] =[]
+
 
 export async function verifyToken(req: Request, res: Response, next: NextFunction) {
   //Midlware to verify if the token is valid and match the user
   const authorization  = await req.headers.authorization 
   const userid = await req.headers.userid as string
-
   if (!authorization ) {
-    return res.status(401).send('Authorization header missing');
+    return res.status(403).send('Authorization header missing');
   }
   if (!userid) {
-    return res.status(401).send('UserID header missing');
+    return res.status(403).send('UserID header missing');
   }
+ 
  // Assumes there is Bearer token scheme like: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
   const token = authorization.split(' ')[1];
 
   if (!token) {
-    return res.status(401).send('Token missing from Authorization header');
+    return res.status(403).send('Token missing from Authorization header');
   }
-
+  if (revokedTokens.includes(token)){
+    return res.status(401).send(`Operation impossible; the userID ${userid} authorization as allready been revoked`);
+  }
+  
   const validation: Boolean = await VerifyTokenUser(userid, token);
   if (!validation) {
-    return res.status(401).send(`Operation impossible; the userID ${userid} is not logged in`);
+    return res.status(401).send(`Operation impossible; the userID ${userid} is not Unauthorized`);
   }
   next(); // Move to the next middleware or route handler if the token is valid
 }
@@ -99,5 +104,9 @@ export async function saveDataToTheGame (req: Request, res: Response, next: Next
     console.error('Error endAGame :', err);
   }
 };
+
+export async function revokeToken(token:string){
+  revokedTokens.push(token)
+}
 
 

@@ -2,15 +2,23 @@ import dotenv from 'dotenv';
 dotenv.config();
 import { Request, Response } from 'express';
 import User, { IUser } from '../models/user';
-import {IUserPoints} from '../models/userPoints'
+import { IUserPoints } from '../models/userPoints';
 import { getUserPoints, incrementFieldUserPoints, RAZOneIUserPoints } from '../functions/mongooseRelated'; //Import function from mongooseRelated.ts
 import { CreateTokenLogin, VerifyTokenUser } from '../functions/userAuth'; //Import function from userUth.ts
+import { revokeToken } from '../middleware';
 import bcrypt from 'bcryptjs';
 import { IGame } from '@models/game';
-import {IupdateScoreReq,IresetScoreReq,IregisterReq,IloginReq,IgameStartReq,IgameEndReq} from '../types/typesRequest';
-const specialPassword = process.env.SPECIAL_PASSWORD
-const specialUsername = process.env.SPECIAL_USERNAME
- 
+import {
+  IupdateScoreReq,
+  IresetScoreReq,
+  IregisterReq,
+  IloginReq,
+  IlogoutReq,
+  IgameStartReq,
+  IgameEndReq,
+} from '../types/typesRequest';
+const specialPassword = process.env.SPECIAL_PASSWORD;
+const specialUsername = process.env.SPECIAL_USERNAME;
 
 /*Awaited JSON ={
 {
@@ -52,7 +60,7 @@ export const registerUser = async (req: Request<IregisterReq>, res: Response) =>
     const newUser = new User({ username, email, password, userPoints } as IUser);
 
     await newUser.save();
-    return res.status(200).send('User registered successfully');
+    return res.status(201).send(`User ${username} registered successfully`);
   } catch (err) {
     console.log('Function userControlers, registerUser err: ' + err);
     return res.status(500).send('Internal server error : ' + err.message);
@@ -70,7 +78,7 @@ with UserID header is user ID
 */
 export const loginUser = async (req: Request<IloginReq>, res: Response) => {
   try {
-    const { username, email, password } = await req.body as IUser;
+    const { username, email, password } = (await req.body) as IUser;
 
     const user: IUser | null = await User.findOne({ username });
     if (!user) {
@@ -82,15 +90,30 @@ export const loginUser = async (req: Request<IloginReq>, res: Response) => {
       return res.status(400).send('Invalid password');
     }
     const userIdString = user._id.toString();
-    const jwtoken = await CreateTokenLogin({ payload: {userIdString} }, '12h');
-    res.status(200).header('authorization','Bearer '+ jwtoken).header('UserID',userIdString).send(`User ${username} loged in`);
-
+    const jwtoken = await CreateTokenLogin({ payload: { userIdString } }, '12h');
+    console.log('loginsuccesssfull');
+    res
+      .status(200)
+      .header('authorization', 'Bearer ' + jwtoken)
+      .header('userid', userIdString)
+      .send(`User ${username} loged in`);
   } catch (err) {
     console.log('Function userControlers, loginUser err: ' + err);
     return res.status(500).send('Internal server error : ' + err.message);
   }
 };
 
+export const logout = async (req: Request<IlogoutReq>, res: Response) => {
+  const token = await req.headers.authorization.split(' ')[1];
+  try {
+    revokeToken(token); //Revoke the actual token
+    res
+      .status(200)
+      .send(`User loged out`);
+  } catch (err) {
+    console.log('logout :' + err);
+  }
+};
 
 /*Awaited JSON =
 {
@@ -111,16 +134,16 @@ export const loginUser = async (req: Request<IloginReq>, res: Response) => {
 }*/
 export const updatescore = async (req: Request<IupdateScoreReq>, res: Response) => {
   try {
-    const userid = await req.headers.userid as string
-    const  data = req.body
+    const userid = (await req.headers.userid) as string;
+    const data = req.body;
 
-    data?null:console.log('Function updatescore(), no data : ' + data)
+    data ? null : console.log('Function updatescore(), no data : ' + data);
 
     for (const key in data) {
       if (data.hasOwnProperty(key)) {
         const value: number = data[key as keyof IupdateScoreReq];
         if (value != 0) {
-           incrementFieldUserPoints(userid, key, value).catch((err) =>
+          incrementFieldUserPoints(userid, key, value).catch((err) =>
             console.log('post./user/:userName/updateScore : ' + err),
           );
         }
@@ -152,9 +175,9 @@ When calling this post, every object is optional, only the ones send in the JSON
 }*/
 export const resetScore = async (req: Request<IresetScoreReq>, res: Response) => {
   try {
-    const data = await req.body 
-    const userid = await req.headers.userid as string
-    
+    const data = await req.body;
+    const userid = (await req.headers.userid) as string;
+
     for (const key in data) {
       if (data.hasOwnProperty(key)) {
         const value: number = data[key as keyof Partial<IresetScoreReq>];
