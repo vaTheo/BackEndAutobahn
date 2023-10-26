@@ -3,6 +3,7 @@ dotenv.config();
 import express from 'express';
 import userRouter from './routes/userRoutes';
 import gameRouter from './routes/gameRoutes';
+import scoreRoutes from './routes/scoreRoutes';
 import {errorHandler} from './controlers/errorControlers'
 const helmet = require('helmet');
 const cors = require('cors');
@@ -36,6 +37,7 @@ app.use(helmet());
 // });
 app.use('/user', userRouter);
 app.use('/game', gameRouter);
+app.use('/score', scoreRoutes);
 app.use('*',errorHandler);
 
 

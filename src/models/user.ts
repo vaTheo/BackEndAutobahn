@@ -23,7 +23,9 @@ const UserPointsSchema: Schema = new Schema<IUserPoints>({
     nbGameStardedWithAlchool:  {type: Number, required: true, default:0},
     nbRedSelected: {type: Number, required: true, default:0},
     nbBlackSelected:  {type: Number, required: true, default:0},
-    nbArriveToLasCard :  {type: Number, required: true, default:0},
+    nbArriveToLastCard :  {type: Number, required: true, default:0},
+    percentRedSelected :  {type: Number, required: true, default:0},
+    percentBlackSelected :  {type: Number, required: true, default:0},
     autoBahnXCard :  {type: Array, required: true,default:[0,0,0,0,0,0,0,0,0]}
 
 })

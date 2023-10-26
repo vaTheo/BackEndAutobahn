@@ -11,7 +11,9 @@ export interface IUserPoints extends Document {
     nbGameStardedWithAlchool: {type : number, default:0}; //Count the number of game started with alcool
     nbRedSelected:{type : number, default:0}; // Count the number selected red card by the player
     nbBlackSelected:  {type : number, default:0}; // Count the number selected black card by the player
-    nbArriveToLasCard :  {type : number, default:0}; // Count the number of time arrive to the last card
+    percentRedSelected:  {type : number, default:0}; // Count the number selected black card by the player
+    percentBlackSelected:  {type : number, default:0}; // Count the number selected black card by the player
+    nbArriveToLastCard :  {type : number, default:0}; // Count the number of time arrive to the last card
     autoBahnXCard: {type: []}
 }
 // //User point schemas creation

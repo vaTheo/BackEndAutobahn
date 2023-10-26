@@ -5,8 +5,7 @@ import { incrementFieldUserPoints } from '../functions/mongooseRelated';
 const mongoose = require('mongoose');
 import User from '../models/user';
 import { Console } from 'console';
-import {IgameStartReq,IgameEndReq} from '../types/typesRequest';
-
+import { IgameStartReq, IgameEndReq } from '../types/typesRequest';
 
 /*Expected JSON
 {
@@ -21,7 +20,7 @@ import {IgameStartReq,IgameEndReq} from '../types/typesRequest';
 */
 export const startGame = async (req: Request<IgameStartReq>, res: Response) => {
   try {
-    const data = (await req.body);
+    const data = await req.body;
     const newGame = new game(data);
     await newGame.save();
 
@@ -36,7 +35,6 @@ export const startGame = async (req: Request<IgameStartReq>, res: Response) => {
     return res.status(500).send('Internal server error : ' + err.message);
   }
 };
-
 
 /*Expected JSON
 {
@@ -62,23 +60,53 @@ export const startGame = async (req: Request<IgameStartReq>, res: Response) => {
 */
 export const endGame = async (req: Request<IgameEndReq>, res: Response) => {
   try {
-    const data = (await req.body);
+    const data = await req.body;
     for (const key in data.userPoints) {
-        const value: number = data.userPoints[key as keyof IUserPoints];
-        if (value != 0) {
-          await incrementFieldUserPoints(data.IDPlaying, key, value).catch((err) => {
-            console.log('Function endGame : ' + err);
-          });
-       }
+      const value: number = data.userPoints[key as keyof IUserPoints];
+      if (value != 0) {
+        await incrementFieldUserPoints(data.IDPlaying, key, value).catch((err) => {
+          console.log('Function endGame : ' + err);
+        });
+      }
     }
     const updated = await User.updateOne(
       { _id: data.IDPlaying, [`userPoints.autoBahnXCard.${data.nuberCardAutobahn}`]: { $exists: true } },
-      { $inc: { [`userPoints.autoBahnXCard.${data.nuberCardAutobahn}`]: 1 } }
+      { $inc: { [`userPoints.autoBahnXCard.${data.nuberCardAutobahn}`]: 1 } },
+    );
+
+    //Update percentage
+    // Fetch the values for nbBlackSelected and nbRedSelected
+    const blackSelectedDoc = await User.findOne({ _id: data.IDPlaying }).select(
+      'userPoints.nbBlackSelected -_id',
+    );
+    const redSelectedDoc = await User.findOne({ _id: data.IDPlaying }).select(
+      'userPoints.nbRedSelected -_id',
+    );
+
+    // Ensure that the documents exist and contain the fields
+    if (!blackSelectedDoc || !redSelectedDoc || !blackSelectedDoc.userPoints || !redSelectedDoc.userPoints) {
+      throw new Error('Document not found or does not contain userPoints');
+    }
+    const blackSelected = Number(blackSelectedDoc.userPoints.nbBlackSelected);
+    const redSelected = Number(redSelectedDoc.userPoints.nbRedSelected);
+    console.log(blackSelected)
+    console.log(redSelected)
+    const percentRedSelected = redSelected / (blackSelected + redSelected)*100;
+    const percentBlackSelected = blackSelected / (blackSelected + redSelected)*100;
+    console.log(percentRedSelected)
+    console.log(percentBlackSelected)
+    // Update the document with the calculated percentRedSelected
+    const updatedpercentRedSelected = await User.updateOne(
+      { _id: data.IDPlaying, [`userPoints.percentRedSelected`]: { $exists: true } },
+      { $set: { [`userPoints.percentRedSelected`]: percentRedSelected } },
+    );
+    const updatedpercentBlackSelected = await User.updateOne(
+      { _id: data.IDPlaying, [`userPoints.percentBlackSelected`]: { $exists: true } },
+      { $set: { [`userPoints.percentBlackSelected`]: percentBlackSelected } },
     );
 
     //mettre le time stamp def fin et le bool game fini
     return res.status(200).send('Gam ended with success');
-
   } catch (err) {
     console.log('Function gameControlers, endGame err: ' + err);
     return res.status(500).send('Internal server error : ' + err.message);
